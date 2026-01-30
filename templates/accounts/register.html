@@ -1,0 +1,293 @@
+{% extends 'home/base.html' %}
+{% block title %}
+Register - HeartLog
+{% endblock %}
+{% block css %}
+<style>
+        /* General Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #264653;
+            --secondary: #2a9d8f;
+            --accent: #e9c46a;
+            --warm: #f4a261;
+            --coral: #e76f51;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--primary);
+            overflow-x: hidden;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 50%, var(--accent) 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Auth Container for Register Page */
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 6rem 20px 2rem; /* Adjusted padding for fixed header */
+            width: 100%;
+        }
+
+        .auth-wrapper {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            width: 100%;
+            max-width: 500px; /* Max-width for a single form */
+            min-height: 580px; /* Adjusted min-height for the signup form content */
+            position: relative;
+            padding: 3rem; /* Direct padding for the wrapper */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .form h2 {
+            font-size: 2.2rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .form p {
+            color: #666;
+            margin-bottom: 2rem;
+        }
+
+        .input-field {
+            position: relative;
+            margin-bottom: 1.5rem;
+            width: 100%; /* Make input fields take full width of wrapper */
+        }
+
+        .input-field input {
+            width: 100%;
+            padding: 1rem 1rem 1rem 3rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .input-field input:focus {
+            outline: none;
+            border-color: var(--secondary);
+            background: white;
+            box-shadow: 0 0 10px rgba(42, 157, 143, 0.2);
+        }
+
+        .input-field i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .input-field input:focus + i {
+            color: var(--secondary);
+        }
+
+        .btn-form-submit { /* Renamed for clarity in this context */
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin: 1rem 0;
+        }
+
+        .btn-form-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .social-text {
+            text-align: center;
+            margin: 1.5rem 0 1rem;
+            color: #666;
+            position: relative;
+            font-size: 0.9rem;
+        }
+
+        .social-text::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 40%;
+            height: 1px;
+            background: #e0e0e0;
+        }
+
+        .social-text::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: 0;
+            width: 40%;
+            height: 1px;
+            background: #e0e0e0;
+        }
+
+        .social-media {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .social-icon {
+            width: 45px;
+            height: 45px;
+            border: 2px solid #e0e0e0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .social-icon:hover {
+            background: var(--secondary);
+            color: white;
+            border-color: var(--secondary);
+            transform: translateY(-2px);
+        }
+
+        .social-icon.google:hover {
+            background: #db4437;
+            border-color: #db4437;
+        }
+
+        .social-icon.facebook:hover {
+            background: #4267B2;
+            border-color: #4267B2;
+        }
+
+        .social-icon.twitter:hover {
+            background: #1DA1F2;
+            border-color: #1DA1F2;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .login-link a {
+            color: var(--secondary);
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive adjustments for signup page */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .auth-wrapper {
+                max-width: 90%; /* Adjust max-width for smaller screens */
+                padding: 2rem;
+            }
+        }
+    </style>
+{% endblock %}
+{% block body %}
+ <div class="auth-container mt-5 ">
+        <div class="auth-wrapper">
+            <form class="form" id="signUpForm" action="#" method="POST">
+                {% csrf_token %}
+                <h2>Create Account</h2>
+                <p>Join Heartlog and start your emotional wellness journey</p>
+                
+                <div class="input-field">
+                    <input type="text" placeholder="First Name" required name="first_name">
+                    <i class="fas fa-user"></i>
+                </div>
+                
+                <div class="input-field">
+                    <input type="text" placeholder="Last Name" required name="last_name">
+                    <i class="fas fa-user-alt"></i>
+                </div>
+
+                <div class="input-field">
+                    <input type="text" placeholder="Username" required name="username">
+                    <i class="fas fa-id-badge"></i>
+                </div>
+                
+                <div class="input-field">
+                    <input type="email" placeholder="Email Address" required name="email">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                
+                <div class="input-field">
+                    <input type="password" placeholder="Password" required name="password">
+                    <i class="fas fa-lock"></i>
+                </div>
+                
+                <div class="input-field">
+                    <input type="password" placeholder="Confirm Password" required name="confirm_password">
+                    <i class="fas fa-lock"></i>
+                </div>
+                
+                <button type="submit" class="btn-form-submit">Sign Up</button>
+                
+                <div class="social-text">or sign up with</div>
+                <div class="social-media">
+                    <a href="#" class="social-icon google" aria-label="Sign up with Google">
+                        <i class="fab fa-google"></i>
+                    </a>
+                    <a href="#" class="social-icon facebook" aria-label="Sign up with Facebook">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="#" class="social-icon twitter" aria-label="Sign up with Twitter">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                </div>
+
+                <div class="login-link">
+                    <p>Already have an account? <a href="login.html">Sign In</a></p> </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

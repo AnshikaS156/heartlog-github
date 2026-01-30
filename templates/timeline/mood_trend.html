@@ -1,0 +1,1043 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mood Trends - HeartLog{% endblock %}
+
+{% block css %}
+<style>
+    body {
+        padding-top: 80px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        min-height: 100vh;
+    }
+
+    .trends-container {
+        max-width: 1600px;
+        margin: 2rem auto;
+        padding: 2rem;
+    }
+
+    .trends-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .trends-header h1 {
+        font-size: 2.5rem;
+        color: var(--primary);
+        margin-bottom: 1rem;
+    }
+
+    .trends-header p {
+        font-size: 1.2rem;
+        color: #666;
+    }
+
+    /* Controls */
+    .trends-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+        background: white;
+        padding: 1.5rem;
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .time-range-selector {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .range-btn {
+        padding: 0.8rem 1.5rem;
+        border: 2px solid var(--secondary);
+        background: white;
+        color: var(--secondary);
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .range-btn.active {
+        background: var(--secondary);
+        color: white;
+        box-shadow: 0 4px 12px rgba(42, 157, 143, 0.3);
+    }
+
+    .range-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .date-selector {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .date-input {
+        padding: 0.8rem;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-family: inherit;
+    }
+
+    .date-input:focus {
+        outline: none;
+        border-color: var(--secondary);
+    }
+
+    /* Statistics Cards */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        border-top: 4px solid var(--secondary);
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .stat-card.highlight {
+        background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+        color: white;
+    }
+
+    .stat-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: var(--primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-card.highlight .stat-value {
+        color: white;
+    }
+
+    .stat-label {
+        font-size: 1.1rem;
+        color: #666;
+        font-weight: 500;
+    }
+
+    .stat-card.highlight .stat-label {
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    /* Chart Containers */
+    .charts-section {
+        display: grid;
+        gap: 2rem;
+    }
+
+    .chart-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 3px solid var(--secondary);
+    }
+
+    .chart-title {
+        font-size: 1.8rem;
+        font-weight: bold;
+        color: var(--primary);
+    }
+
+    .chart-subtitle {
+        font-size: 0.95rem;
+        color: #666;
+        margin-top: 0.3rem;
+    }
+
+    .chart-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .chart-btn {
+        padding: 0.6rem 1.2rem;
+        background: var(--accent);
+        color: var(--primary);
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .chart-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .chart-canvas {
+        position: relative;
+        height: 400px;
+        margin-top: 1rem;
+    }
+
+    canvas {
+        max-height: 400px;
+    }
+
+    /* Emotion Distribution */
+    .distribution-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1rem;
+    }
+
+    .distribution-item {
+        text-align: center;
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .distribution-item:hover {
+        transform: scale(1.05);
+        border-color: var(--secondary);
+        background: white;
+    }
+
+    .distribution-emoji {
+        font-size: 3rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .distribution-label {
+        font-weight: 600;
+        color: var(--primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .distribution-percentage {
+        font-size: 1.8rem;
+        font-weight: bold;
+        color: var(--secondary);
+        margin-bottom: 0.3rem;
+    }
+
+    .distribution-count {
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    /* Progress Bars */
+    .progress-section {
+        margin-top: 2rem;
+    }
+
+    .progress-item {
+        margin-bottom: 1.5rem;
+    }
+
+    .progress-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .progress-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        color: var(--primary);
+    }
+
+    .progress-value {
+        font-weight: bold;
+        color: var(--secondary);
+    }
+
+    .progress-bar-container {
+        height: 30px;
+        background: #e9ecef;
+        border-radius: 15px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .progress-bar {
+        height: 100%;
+        border-radius: 15px;
+        transition: width 1s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .progress-bar::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        background: linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0) 0%,
+            rgba(255, 255, 255, 0.3) 50%,
+            rgba(255, 255, 255, 0) 100%
+        );
+        animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+
+    .progress-bar.happy {
+        background: linear-gradient(90deg, #ffd93d 0%, #ffb627 100%);
+    }
+
+    .progress-bar.sad {
+        background: linear-gradient(90deg, #6dd5ed 0%, #2193b0 100%);
+    }
+
+    .progress-bar.anxious {
+        background: linear-gradient(90deg, #ff9a9e 0%, #fecfef 100%);
+    }
+
+    .progress-bar.calm {
+        background: linear-gradient(90deg, #a8edea 0%, #fed6e3 100%);
+    }
+
+    .progress-bar.angry {
+        background: linear-gradient(90deg, #ff6b6b 0%, #ee5a6f 100%);
+    }
+
+    .progress-bar.grateful {
+        background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    /* Insights Section */
+    .insights-section {
+        background: white;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        margin-top: 2rem;
+    }
+
+    .insights-header {
+        font-size: 1.8rem;
+        font-weight: bold;
+        color: var(--primary);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .insight-item {
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 12px;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--secondary);
+        transition: all 0.3s ease;
+    }
+
+    .insight-item:hover {
+        transform: translateX(5px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .insight-title {
+        font-weight: bold;
+        color: var(--primary);
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+    }
+
+    .insight-text {
+        color: #666;
+        line-height: 1.6;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+        .trends-controls {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .time-range-selector {
+            justify-content: center;
+        }
+
+        .chart-canvas {
+            height: 300px;
+        }
+
+        canvas {
+            max-height: 300px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .trends-header h1 {
+            font-size: 2rem;
+        }
+
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .stat-icon {
+            font-size: 2.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+        }
+
+        .chart-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .distribution-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .range-btn {
+            padding: 0.6rem 1rem;
+            font-size: 0.9rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .trends-container {
+            padding: 1rem;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .distribution-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .time-range-selector {
+            flex-direction: column;
+        }
+
+        .range-btn {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="trends-container">
+    <div class="trends-header">
+        <h1>📈 Mood Trend Analysis</h1>
+        <p>Visualize your emotional patterns and insights</p>
+    </div>
+
+    <!-- Statistics Grid -->
+    <div class="stats-grid">
+        <div class="stat-card highlight">
+            <div class="stat-icon">🎯</div>
+            <div class="stat-value" id="totalEntries">0</div>
+            <div class="stat-label">Total Entries</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">📊</div>
+            <div class="stat-value" id="avgMoodScore">0.0</div>
+            <div class="stat-label">Average Mood</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🔥</div>
+            <div class="stat-value" id="currentStreak">0</div>
+            <div class="stat-label">Current Streak</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" id="dominantEmotionIcon">😊</div>
+            <div class="stat-value" id="dominantEmotion">Happy</div>
+            <div class="stat-label">Most Common</div>
+        </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="trends-controls">
+        <div class="time-range-selector">
+            <button class="range-btn active" data-range="7">Last 7 Days</button>
+            <button class="range-btn" data-range="30">Last 30 Days</button>
+            <button class="range-btn" data-range="90">Last 90 Days</button>
+            <button class="range-btn" data-range="365">Last Year</button>
+            <button class="range-btn" data-range="all">All Time</button>
+        </div>
+        <div class="date-selector">
+            <input type="date" id="startDate" class="date-input" placeholder="Start Date">
+            <span style="color: #666;">to</span>
+            <input type="date" id="endDate" class="date-input" placeholder="End Date">
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="charts-section">
+        
+        <!-- Timeline Chart -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <div>
+                    <div class="chart-title">Emotional Timeline</div>
+                    <div class="chart-subtitle">Track your mood fluctuations over time</div>
+                </div>
+                <div class="chart-actions">
+                    <button class="chart-btn" onclick="exportChart('timelineChart')">
+                        <i class="fas fa-download"></i> Export
+                    </button>
+                </div>
+            </div>
+            <div class="chart-canvas">
+                <canvas id="timelineChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Distribution Chart -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <div>
+                    <div class="chart-title">Emotion Distribution</div>
+                    <div class="chart-subtitle">See the breakdown of your emotional states</div>
+                </div>
+            </div>
+            <div class="distribution-grid" id="distributionGrid">
+                <!-- Generated by JavaScript -->
+            </div>
+            <div class="progress-section" id="progressBars">
+                <!-- Generated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Pattern Chart -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <div>
+                    <div class="chart-title">Weekly Pattern Analysis</div>
+                    <div class="chart-subtitle">Discover your emotional patterns by day of week</div>
+                </div>
+            </div>
+            <div class="chart-canvas">
+                <canvas id="weeklyChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Pie Chart -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <div>
+                    <div class="chart-title">Emotion Pie Chart</div>
+                    <div class="chart-subtitle">Visual proportion of your emotions</div>
+                </div>
+            </div>
+            <div class="chart-canvas">
+                <canvas id="pieChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Insights Section -->
+    <div class="insights-section">
+        <div class="insights-header">
+            <i class="fas fa-lightbulb"></i> Insights & Patterns
+        </div>
+        <div id="insightsContainer">
+            <!-- Generated by JavaScript -->
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<script>
+    const emotions = {
+        happy: { emoji: '😊', label: 'Happy', color: '#ffd93d', score: 5 },
+        sad: { emoji: '😢', label: 'Sad', color: '#6dd5ed', score: 2 },
+        anxious: { emoji: '😰', label: 'Anxious', color: '#ff9a9e', score: 2.5 },
+        calm: { emoji: '😌', label: 'Calm', color: '#a8edea', score: 4 },
+        angry: { emoji: '😤', label: 'Angry', color: '#ff6b6b', score: 1.5 },
+        grateful: { emoji: '🤗', label: 'Grateful', color: '#f093fb', score: 5 }
+    };
+
+    let emotionData = JSON.parse(localStorage.getItem('emotionData')) || {};
+    let currentRange = 30;
+    let timelineChart, weeklyChart, pieChart;
+
+    // Initialize charts
+    function initCharts() {
+        const ctx1 = document.getElementById('timelineChart').getContext('2d');
+        const ctx2 = document.getElementById('weeklyChart').getContext('2d');
+        const ctx3 = document.getElementById('pieChart').getContext('2d');
+
+        // Timeline Chart
+        timelineChart = new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Mood Score',
+                    data: [],
+                    borderColor: '#2a9d8f',
+                    backgroundColor: 'rgba(42, 157, 143, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                    pointBackgroundColor: '#2a9d8f',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleFont: { size: 14 },
+                        bodyFont: { size: 13 }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 5,
+                        ticks: {
+                            stepSize: 1,
+                            callback: function(value) {
+                                const labels = ['', '😤', '😢', '😰', '😌', '😊'];
+                                return labels[value] || value;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Weekly Pattern Chart
+        weeklyChart = new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+                datasets: [{
+                    label: 'Average Mood',
+                    data: [],
+                    backgroundColor: [
+                        'rgba(255, 217, 61, 0.8)',
+                        'rgba(109, 213, 237, 0.8)',
+                        'rgba(255, 154, 158, 0.8)',
+                        'rgba(168, 237, 234, 0.8)',
+                        'rgba(255, 107, 107, 0.8)',
+                        'rgba(240, 147, 251, 0.8)',
+                        'rgba(42, 157, 143, 0.8)'
+                    ],
+                    borderColor: [
+                        '#ffd93d',
+                        '#6dd5ed',
+                        '#ff9a9e',
+                        '#a8edea',
+                        '#ff6b6b',
+                        '#f093fb',
+                        '#2a9d8f'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 5
+                    }
+                }
+            }
+        });
+
+        // Pie Chart
+        pieChart = new Chart(ctx3, {
+            type: 'doughnut',
+            data: {
+                labels: [],
+                datasets: [{
+                    data: [],
+                    backgroundColor: [],
+                    borderColor: '#fff',
+                    borderWidth: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            font: { size: 14 },
+                            padding: 15
+                        }
+                    }
+                }
+            }
+        });
+
+        updateCharts();
+    }
+
+    // Update all charts
+    function updateCharts() {
+        const filteredData = getFilteredData();
+        updateTimelineChart(filteredData);
+        updateWeeklyChart(filteredData);
+        updatePieChart(filteredData);
+        updateDistribution(filteredData);
+        updateStats(filteredData);
+        generateInsights(filteredData);
+    }
+
+    // Get filtered data based on date range
+    function getFilteredData() {
+        const today = new Date();
+        const entries = [];
+
+        Object.entries(emotionData).forEach(([dateKey, entry]) => {
+            const entryDate = new Date(dateKey);
+            const diffDays = Math.floor((today - entryDate) / (1000 * 60 * 60 * 24));
+
+            if (currentRange === 'all' || diffDays <= currentRange) {
+                entries.push({ date: dateKey, ...entry });
+            }
+        });
+
+        return entries.sort((a, b) => new Date(a.date) - new Date(b.date));
+    }
+
+    // Update timeline chart
+    function updateTimelineChart(data) {
+        const labels = data.map(entry => {
+            const date = new Date(entry.date);
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        });
+        
+        const scores = data.map(entry => emotions[entry.emotion].score);
+
+        timelineChart.data.labels = labels;
+        timelineChart.data.datasets[0].data = scores;
+        timelineChart.update();
+    }
+
+    // Update weekly pattern chart
+    function updateWeeklyChart(data) {
+        const weeklyData = [[], [], [], [], [], [], []];
+        
+        data.forEach(entry => {
+            const dayOfWeek = new Date(entry.date).getDay();
+            weeklyData[dayOfWeek].push(emotions[entry.emotion].score);
+        });
+
+        const averages = weeklyData.map(dayData => {
+            if (dayData.length === 0) return 0;
+            return dayData.reduce((a, b) => a + b, 0) / dayData.length;
+        });
+
+        weeklyChart.data.datasets[0].data = averages;
+        weeklyChart.update();
+    }
+
+    // Update pie chart
+    function updatePieChart(data) {
+        const counts = {};
+        data.forEach(entry => {
+            counts[entry.emotion] = (counts[entry.emotion] || 0) + 1;
+        });
+
+        const labels = [];
+        const values = [];
+        const colors = [];
+
+        Object.entries(counts).forEach(([emotion, count]) => {
+            labels.push(emotions[emotion].emoji + ' ' + emotions[emotion].label);
+            values.push(count);
+            colors.push(emotions[emotion].color);
+        });
+
+        pieChart.data.labels = labels;
+        pieChart.data.datasets[0].data = values;
+        pieChart.data.datasets[0].backgroundColor = colors;
+        pieChart.update();
+    }
+
+    // Update distribution
+    function updateDistribution(data) {
+        const counts = {};
+        const total = data.length;
+
+        Object.keys(emotions).forEach(key => counts[key] = 0);
+        data.forEach(entry => counts[entry.emotion]++);
+
+        // Update distribution grid
+        const grid = document.getElementById('distributionGrid');
+        grid.innerHTML = '';
+
+        Object.entries(emotions).forEach(([key, emotion]) => {
+            const count = counts[key];
+            const percentage = total > 0 ? Math.round((count / total) * 100) : 0;
+
+            const item = document.createElement('div');
+            item.className = 'distribution-item';
+            item.innerHTML = `
+                <div class="distribution-emoji">${emotion.emoji}</div>
+                <div class="distribution-label">${emotion.label}</div>
+                <div class="distribution-percentage">${percentage}%</div>
+                <div class="distribution-count">${count} days</div>
+            `;
+            grid.appendChild(item);
+        });
+
+        // Update progress bars
+        const progressSection = document.getElementById('progressBars');
+        progressSection.innerHTML = '';
+
+        Object.entries(emotions).forEach(([key, emotion]) => {
+            const count = counts[key];
+            const percentage = total > 0 ? Math.round((count / total) * 100) : 0;
+
+            const item = document.createElement('div');
+            item.className = 'progress-item';
+            item.innerHTML = `
+                <div class="progress-header">
+                    <div class="progress-label">
+                        <span>${emotion.emoji}</span>
+                        <span>${emotion.label}</span>
+                    </div>
+                    <div class="progress-value">${percentage}% (${count})</div>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar ${key}" style="width: ${percentage}%"></div>
+                </div>
+            `;
+            progressSection.appendChild(item);
+        });
+    }
+
+    // Update statistics
+    function updateStats(data) {
+        document.getElementById('totalEntries').textContent = data.length;
+
+        // Calculate average mood
+        if (data.length > 0) {
+            const avgScore = data.reduce((sum, entry) => sum + emotions[entry.emotion].score, 0) / data.length;
+            document.getElementById('avgMoodScore').textContent = avgScore.toFixed(1);
+        } else {
+            document.getElementById('avgMoodScore').textContent = '0.0';
+        }
+
+        // Current streak
+        const today = new Date();
+        let streak = 0;
+        for (let i = 0; i < 365; i++) {
+            const checkDate = new Date(today);
+            checkDate.setDate(checkDate.getDate() - i);
+            const dateKey = `${checkDate.getFullYear()}-${String(checkDate.getMonth() + 1).padStart(2, '0')}-${String(checkDate.getDate()).padStart(2, '0')}`;
+            if (emotionData[dateKey]) {
+                streak++;
+            } else {
+                break;
+            }
+        }
+        document.getElementById('currentStreak').textContent = streak;
+
+        // Dominant emotion
+        const counts = {};
+        data.forEach(entry => counts[entry.emotion] = (counts[entry.emotion] || 0) + 1);
+        
+        let maxEmotion = 'happy';
+        let maxCount = 0;
+        Object.entries(counts).forEach(([emotion, count]) => {
+            if (count > maxCount) {
+                maxCount = count;
+                maxEmotion = emotion;
+            }
+        });
+
+        document.getElementById('dominantEmotion').textContent = emotions[maxEmotion].label;
+        document.getElementById('dominantEmotionIcon').textContent = emotions[maxEmotion].emoji;
+    }
+
+    // Generate insights
+    function generateInsights(data) {
+        const container = document.getElementById('insightsContainer');
+        container.innerHTML = '';
+
+        if (data.length === 0) {
+            container.innerHTML = '<div class="insight-item"><div class="insight-text">No data available for the selected period. Start logging your emotions to see insights!</div></div>';
+            return;
+        }
+
+        const insights = [];
+
+        // Most common emotion
+        const counts = {};
+        data.forEach(entry => counts[entry.emotion] = (counts[entry.emotion] || 0) + 1);
+        const maxEmotion = Object.entries(counts).reduce((a, b) => a[1] > b[1] ? a : b);
+        insights.push({
+            title: '🎯 Dominant Emotion',
+            text: `You felt ${emotions[maxEmotion[0]].emoji} ${emotions[maxEmotion[0]].label} most often (${maxEmotion[1]} times, ${Math.round((maxEmotion[1] / data.length) * 100)}% of the time).`
+        });
+
+        // Best day of week
+        const weeklyData = {};
+        data.forEach(entry => {
+            const day = new Date(entry.date).getDay();
+            if (!weeklyData[day]) weeklyData[day] = [];
+            weeklyData[day].push(emotions[entry.emotion].score);
+        });
+
+        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        let bestDay = 0;
+        let bestScore = 0;
+        Object.entries(weeklyData).forEach(([day, scores]) => {
+            const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+            if (avg > bestScore) {
+                bestScore = avg;
+                bestDay = parseInt(day);
+            }
+        });
+
+        insights.push({
+            title: '📅 Best Day of the Week',
+            text: `${dayNames[bestDay]} tends to be your best day with an average mood score of ${bestScore.toFixed(1)}/5.`
+        });
+
+        // Consistency
+        const avgScore = data.reduce((sum, entry) => sum + emotions[entry.emotion].score, 0) / data.length;
+        const variance = data.reduce((sum, entry) => sum + Math.pow(emotions[entry.emotion].score - avgScore, 2), 0) / data.length;
+        const consistency = variance < 1 ? 'very stable' : variance < 2 ? 'moderately variable' : 'highly variable';
+
+        insights.push({
+            title: '📊 Mood Consistency',
+            text: `Your emotional state has been ${consistency} during this period, with an average mood score of ${avgScore.toFixed(1)}/5.`
+        });
+
+        // Positive vs negative ratio
+        const positive = data.filter(e => emotions[e.emotion].score >= 4).length;
+        const negative = data.filter(e => emotions[e.emotion].score <= 2.5).length;
+        const ratio = positive > negative ? 'more positive' : negative > positive ? 'more challenging' : 'balanced';
+
+        insights.push({
+            title: '⚖️ Emotional Balance',
+            text: `You've had ${positive} positive days and ${negative} challenging days, making this period ${ratio} overall.`
+        });
+
+        // Render insights
+        insights.forEach(insight => {
+            const item = document.createElement('div');
+            item.className = 'insight-item';
+            item.innerHTML = `
+                <div class="insight-title">${insight.title}</div>
+                <div class="insight-text">${insight.text}</div>
+            `;
+            container.appendChild(item);
+        });
+    }
+
+    // Range buttons
+    document.querySelectorAll('.range-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentRange = this.dataset.range === 'all' ? 'all' : parseInt(this.dataset.range);
+            updateCharts();
+        });
+    });
+
+    // Date inputs
+    document.getElementById('startDate').addEventListener('change', filterByDateRange);
+    document.getElementById('endDate').addEventListener('change', filterByDateRange);
+
+    function filterByDateRange() {
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+
+        if (startDate && endDate) {
+            // Custom filtering logic here
+            updateCharts();
+        }
+    }
+
+    // Export chart
+    function exportChart(chartId) {
+        const canvas = document.getElementById(chartId);
+        const url = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.download = `${chartId}-${new Date().toISOString().split('T')[0]}.png`;
+        link.href = url;
+        link.click();
+    }
+
+    // Mobile menu toggle
+    document.getElementById('mobileToggle').addEventListener('click', function() {
+        document.getElementById('navLinks').classList.toggle('active');
+    });
+
+    // Initialize
+    initCharts();
+</script>
+{% endblock %}

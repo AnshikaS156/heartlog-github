@@ -1,0 +1,164 @@
+{% extends 'home/base.html' %}
+{% block title %}
+Login - HeartLog
+{% endblock %}
+{% block css %}
+<style>
+        :root {
+            --primary: #264653;
+            --secondary: #2a9d8f;
+            --accent: #e9c46a;
+            --warm: #f4a261;
+            --soft: #e76f51;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(120deg, var(--primary), var(--secondary), var(--accent));
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-container {
+            width: 400px;
+            background-color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .auth-container h2 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .auth-container p {
+            text-align: center;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .input-field {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .input-field input {
+            width: 100%;
+            padding: 10px 40px 10px 15px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            transition: border-color 0.3s;
+        }
+
+        .input-field input:focus {
+            border-color: var(--secondary);
+            outline: none;
+        }
+
+        .input-field i {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+
+        .btn-form-submit {
+            width: 100%;
+            padding: 10px;
+            background-color: var(--secondary);
+            color: white;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn-form-submit:hover {
+            background-color: var(--primary);
+        }
+
+        .social-text, .login-link {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .social-media {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .social-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 10px;
+            color: white;
+            text-decoration: none;
+            transition: transform 0.3s;
+        }
+
+        .social-icon:hover {
+            transform: scale(1.1);
+        }
+
+        .login-link a {
+            color: var(--secondary);
+            text-decoration: none;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+{% endblock %}
+{% block body %}
+<div class="auth-container">
+        <form action="{% url 'accounts:login' %}" method="POST">
+            {% csrf_token %}
+            <h2>Welcome Back</h2>
+            <p>Log in to continue your journey</p>
+
+            <div class="input-field">
+                <input type="text" name="username" placeholder="Username" required>
+                <i class="fas fa-user"></i>
+            </div>
+
+            <div class="input-field">
+                <input type="password" name="password" placeholder="Password" required>
+                <i class="fas fa-lock"></i>
+            </div>
+
+            <button type="submit" class="btn-form-submit">Login</button>
+
+            <div class="social-text">or login with</div>
+            <div class="social-media">
+                <a href="#" class="social-icon google" aria-label="Login with Google"><i class="fab fa-google"></i></a>
+                <a href="#" class="social-icon facebook" aria-label="Login with Facebook"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="social-icon twitter" aria-label="Login with Twitter"><i class="fab fa-twitter"></i></a>
+            </div>
+
+            <div class="login-link">
+                <p>Don't have an account? <a href="{% url 'accounts:register' %}">Sign Up</a></p>
+            </div>
+        </form>
+    </div>
+{% endblock %}

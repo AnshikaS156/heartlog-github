@@ -1,0 +1,622 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Emotional Timeline - HeartLog{% endblock %}
+
+{% block css %}
+<style>
+body {
+    padding-top: 80px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    min-height: 100vh;
+}
+
+.timeline-container {
+    max-width: 1400px;
+    margin: 2rem auto;
+    padding: 2rem;
+}
+
+.timeline-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.timeline-header h1 {
+    font-size: 2.5rem;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+}
+
+.timeline-header p {
+    font-size: 1.2rem;
+    color: #666;
+}
+
+/* Statistics Panel */
+.stats-panel {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border-top: 4px solid var(--secondary);
+}
+
+.stat-value {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 1rem;
+    color: #666;
+    font-weight: 500;
+}
+
+/* Calendar Controls */
+.calendar-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    background: white;
+    padding: 1.5rem;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.month-navigation {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.nav-btn {
+    background: var(--secondary);
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.nav-btn:hover {
+    background: var(--primary);
+    transform: scale(1.1);
+}
+
+.current-month {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary);
+    min-width: 200px;
+    text-align: center;
+}
+
+.view-toggle {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.view-btn {
+    padding: 0.6rem 1.2rem;
+    background: white;
+    border: 2px solid var(--secondary);
+    color: var(--secondary);
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.view-btn.active {
+    background: var(--secondary);
+    color: white;
+}
+
+/* Calendar */
+.calendar {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.weekday {
+    text-align: center;
+    font-weight: bold;
+    color: var(--primary);
+    padding: 1rem;
+    font-size: 1.1rem;
+}
+
+.calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.5rem;
+}
+
+.day-cell {
+    aspect-ratio: 1;
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid transparent;
+    min-height: 100px;
+}
+
+.day-cell:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-color: var(--secondary);
+}
+
+.day-cell.other-month {
+    opacity: 0.3;
+    cursor: default;
+}
+
+.day-cell.other-month:hover {
+    transform: none;
+    box-shadow: none;
+    border-color: transparent;
+}
+
+.day-cell.today {
+    border: 2px solid var(--coral);
+    background: linear-gradient(135deg, rgba(231, 111, 81, 0.1) 0%, rgba(244, 162, 97, 0.1) 100%);
+}
+
+.day-number {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+}
+
+.day-emotion {
+    font-size: 2rem;
+    margin-bottom: 0.3rem;
+}
+
+.day-note {
+    font-size: 0.75rem;
+    color: #666;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    max-width: 100%;
+}
+
+/* Emotion Legend */
+.emotion-legend {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: white;
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.legend-emoji {
+    font-size: 2rem;
+}
+
+.legend-label {
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 0.3rem;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal.active {
+    display: flex !important;
+}
+
+.modal-content {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.modal-header h2 {
+    color: var(--primary);
+    font-size: 1.8rem;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    cursor: pointer;
+    color: #999;
+    transition: color 0.3s ease;
+}
+
+.close-btn:hover {
+    color: var(--coral);
+}
+
+.emotion-selector {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.emotion-option {
+    padding: 1.5rem;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.emotion-option:hover {
+    border-color: var(--secondary);
+    transform: scale(1.05);
+}
+
+.emotion-option.selected {
+    border-color: var(--secondary);
+    border-width: 3px;
+    box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.2);
+    background: rgba(42, 157, 143, 0.1);
+}
+
+.emotion-option .emoji {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.emotion-option span:last-child {
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.note-input {
+    width: 100%;
+    min-height: 100px;
+    padding: 1rem;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+    resize: vertical;
+}
+
+.note-input:focus {
+    outline: none;
+    border-color: var(--secondary);
+}
+
+.save-btn {
+    width: 100%;
+    padding: 1rem;
+    background: var(--secondary);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.save-btn:hover {
+    background: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+@media (max-width: 768px) {
+    .calendar-days {
+        gap: 0.3rem;
+    }
+    
+    .day-cell {
+        min-height: 80px;
+        padding: 0.5rem;
+    }
+    
+    .day-emotion {
+        font-size: 1.5rem;
+    }
+    
+    .emotion-selector {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="timeline-container">
+    <div class="timeline-header">
+        <h1>📊 Your Emotional Timeline</h1>
+        <p>Track your emotional journey day by day</p>
+    </div>
+
+    <!-- Statistics Panel -->
+    <div class="stats-panel">
+        <div class="stat-card">
+            <div class="stat-value" id="currentStreak">{{ streak|default:0 }}</div>
+            <div class="stat-label">Day Streak 🔥</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="totalEntries">{{ total_entries|default:0 }}</div>
+            <div class="stat-label">Total Entries</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="dominantEmotion">{{ dominant_emotion|default:"😊" }}</div>
+            <div class="stat-label">Most Common Mood</div>
+        </div>
+    </div>
+
+    <!-- Calendar Controls -->
+    <div class="calendar-controls">
+        <div class="month-navigation">
+            <form method="get" style="display: inline;">
+                <input type="hidden" name="month" value="{{ prev_month }}">
+                <input type="hidden" name="year" value="{{ prev_year }}">
+                <button type="submit" class="nav-btn"><i class="fas fa-chevron-left"></i></button>
+            </form>
+            <div class="current-month">{{ month }} {{ year }}</div>
+            <form method="get" style="display: inline;">
+                <input type="hidden" name="month" value="{{ next_month }}">
+                <input type="hidden" name="year" value="{{ next_year }}">
+                <button type="submit" class="nav-btn"><i class="fas fa-chevron-right"></i></button>
+            </form>
+        </div>
+        <div class="view-toggle">
+            <button class="view-btn active">Month</button>
+            <button class="view-btn">Week (Soon)</button>
+            <button class="view-btn">Year (Soon)</button>
+        </div>
+    </div>
+
+    <!-- Calendar -->
+    <div class="calendar">
+        <div class="calendar-weekdays">
+            <div class="weekday">Sun</div>
+            <div class="weekday">Mon</div>
+            <div class="weekday">Tue</div>
+            <div class="weekday">Wed</div>
+            <div class="weekday">Thu</div>
+            <div class="weekday">Fri</div>
+            <div class="weekday">Sat</div>
+        </div>
+        <div class="calendar-days" id="calendarDays">
+            {% for day in calendar_days %}
+                <div class="day-cell {% if day.is_other_month %}other-month{% endif %} {% if day.is_today %}today{% endif %}" 
+                     {% if not day.is_other_month %}onclick="openDayModal('{{ day.date }}')"{% endif %}>
+                    <div class="day-number">{{ day.day }}</div>
+                    {% if day.emotion %}
+                        <div class="day-emotion">{{ day.emotion_emoji }}</div>
+                        {% if day.note %}
+                            <div class="day-note">{{ day.note }}</div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Emotion Legend -->
+    <div class="emotion-legend">
+        <div class="legend-item">
+            <div class="legend-emoji">😊</div>
+            <div>
+                <div class="legend-label">Happy</div>
+                <div><span id="happyCount">{{ emotion_counts.happy|default:0 }}</span> days</div>
+            </div>
+        </div>
+        <div class="legend-item">
+            <div class="legend-emoji">😢</div>
+            <div>
+                <div class="legend-label">Sad</div>
+                <div><span id="sadCount">{{ emotion_counts.sad|default:0 }}</span> days</div>
+            </div>
+        </div>
+        <div class="legend-item">
+            <div class="legend-emoji">😰</div>
+            <div>
+                <div class="legend-label">Anxious</div>
+                <div><span id="anxiousCount">{{ emotion_counts.anxious|default:0 }}</span> days</div>
+            </div>
+        </div>
+        <div class="legend-item">
+            <div class="legend-emoji">😌</div>
+            <div>
+                <div class="legend-label">Calm</div>
+                <div><span id="calmCount">{{ emotion_counts.calm|default:0 }}</span> days</div>
+            </div>
+        </div>
+        <div class="legend-item">
+            <div class="legend-emoji">😤</div>
+            <div>
+                <div class="legend-label">Angry</div>
+                <div><span id="angryCount">{{ emotion_counts.angry|default:0 }}</span> days</div>
+            </div>
+        </div>
+        <div class="legend-item">
+            <div class="legend-emoji">🤗</div>
+            <div>
+                <div class="legend-label">Grateful</div>
+                <div><span id="gratefulCount">{{ emotion_counts.grateful|default:0 }}</span> days</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal" id="dayModal">
+    <div class="modal-content">
+        <form method="post" id="emotionForm">
+            {% csrf_token %}
+            <div class="modal-header">
+                <h2 id="modalDate"></h2>
+                <button type="button" class="close-btn" id="closeModal">&times;</button>
+            </div>
+
+            <input type="hidden" name="date" id="selectedDate">
+            
+            <div class="emotion-selector">
+                <div class="emotion-option" onclick="selectEmotion('happy')">
+                    <span class="emoji">😊</span>
+                    <span>Happy</span>
+                    <input type="radio" name="emotion" value="happy" style="display: none;">
+                </div>
+                <div class="emotion-option" onclick="selectEmotion('sad')">
+                    <span class="emoji">😢</span>
+                    <span>Sad</span>
+                    <input type="radio" name="emotion" value="sad" style="display: none;">
+                </div>
+                <div class="emotion-option" onclick="selectEmotion('anxious')">
+                    <span class="emoji">😰</span>
+                    <span>Anxious</span>
+                    <input type="radio" name="emotion" value="anxious" style="display: none;">
+                </div>
+                <div class="emotion-option" onclick="selectEmotion('calm')">
+                    <span class="emoji">😌</span>
+                    <span>Calm</span>
+                    <input type="radio" name="emotion" value="calm" style="display: none;">
+                </div>
+                <div class="emotion-option" onclick="selectEmotion('angry')">
+                    <span class="emoji">😤</span>
+                    <span>Angry</span>
+                    <input type="radio" name="emotion" value="angry" style="display: none;">
+                </div>
+                <div class="emotion-option" onclick="selectEmotion('grateful')">
+                    <span class="emoji">🤗</span>
+                    <span>Grateful</span>
+                    <input type="radio" name="emotion" value="grateful" style="display: none;">
+                </div>
+            </div>
+
+            <textarea name="note" id="dayNote" class="note-input" placeholder="What made you feel this way today?"></textarea>
+            <button type="submit" class="save-btn">Save Entry</button>
+        </form>
+    </div>
+</div>
+
+<script>
+const emotions = {
+    happy: '😊',
+    sad: '😢',
+    anxious: '😰',
+    calm: '😌',
+    angry: '😤',
+    grateful: '🤗'
+};
+
+function openDayModal(dateStr) {
+    const modal = document.getElementById('dayModal');
+    const dateInput = document.getElementById('selectedDate');
+    const modalDate = document.getElementById('modalDate');
+    
+    dateInput.value = dateStr;
+    const date = new Date(dateStr);
+    modalDate.textContent = date.toDateString();
+    
+    modal.classList.add('active');
+}
+
+function selectEmotion(emotion) {
+    document.querySelectorAll('.emotion-option').forEach(opt => opt.classList.remove('selected'));
+    event.currentTarget.classList.add('selected');
+    document.querySelector(`input[value="${emotion}"]`).checked = true;
+}
+
+document.getElementById('closeModal').onclick = function() {
+    document.getElementById('dayModal').classList.remove('active');
+};
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('dayModal');
+    if (event.target == modal) {
+        modal.classList.remove('active');
+    }
+};
+
+// Mobile menu toggle
+const mobileToggle = document.getElementById('mobileToggle');
+if (mobileToggle) {
+    mobileToggle.addEventListener('click', function() {
+        document.getElementById('navLinks').classList.toggle('active');
+    });
+}
+</script>
+{% endblock %}

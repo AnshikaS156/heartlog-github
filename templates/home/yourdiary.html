@@ -1,0 +1,638 @@
+{% extends 'home/base.html' %}
+{% block title %}
+Your Diary - HeartLog
+{% endblock %}
+{% block css %}
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    :root {
+        --primary: #264653;
+        --secondary: #2a9d8f;
+        --accent: #e9c46a;
+        --warm: #f4a261;
+        --coral: #e76f51;
+        --paper: #fefdf8;
+        --ink: #2c3e50;
+        --line: #e8e5d8;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        min-height: 100vh;
+        color: var(--ink);
+        overflow-x: hidden;
+    }
+
+    /* Header - Same as homepage */
+    header {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        color: white;
+        padding: 1rem 0;
+        position: fixed;
+        top: 0;
+        width: 100%;
+        z-index: 1000;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        height: 60px;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    .navbar-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+        color: white;
+        font-size: 1.8rem;
+        font-weight: bold;
+    }
+
+    .nav-group {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+
+    .nav-links {
+        display: flex;
+        list-style: none;
+        gap: 1.5rem;
+        align-items: center;
+    }
+
+    .nav-links a {
+        color: white;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .nav-links a:hover {
+        color: var(--accent);
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateY(-2px);
+    }
+
+    .nav-links a.active {
+        color: var(--accent);
+        background: rgba(255, 255, 255, 0.15);
+    }
+
+    /* Main Content */
+    .main-content {
+        padding-top: 100px;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 100px 20px 40px;
+    }
+
+    /* Diary Container */
+    .diary-container {
+        max-width: 900px;
+        width: 100%;
+        position: relative;
+    }
+
+    /* Diary Header */
+    .diary-header {
+        text-align: center;
+        margin-bottom: 2rem;
+        color: white;
+    }
+
+    .diary-header h1 {
+        font-size: 3rem;
+        margin-bottom: 0.5rem;
+        font-family: 'Georgia', serif;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .diary-date {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        font-weight: 300;
+    }
+
+    /* Diary Book */
+    .diary-book {
+        background: var(--paper);
+        border-radius: 15px;
+        box-shadow:
+            0 20px 40px rgba(0, 0, 0, 0.3),
+            inset 0 0 0 1px rgba(139, 69, 19, 0.2);
+        position: relative;
+        overflow: hidden;
+        transform: perspective(1000px) rotateX(2deg);
+        transition: transform 0.3s ease;
+    }
+
+    .diary-book:hover {
+        transform: perspective(1000px) rotateX(0deg);
+    }
+
+    /* Book Spine Effect */
+    .diary-book::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 30px;
+        background: linear-gradient(90deg,
+                rgba(139, 69, 19, 0.3) 0%,
+                rgba(139, 69, 19, 0.1) 50%,
+                transparent 100%);
+        z-index: 1;
+    }
+
+    /* Diary Pages */
+    .diary-pages {
+        position: relative;
+        background: var(--paper);
+        min-height: 600px;
+    }
+
+    /* Ruled Lines Background */
+    .diary-pages::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 50px;
+        right: 20px;
+        bottom: 0;
+        background-image:
+            linear-gradient(transparent 60px, var(--line) 60px, var(--line) 61px, transparent 61px),
+            repeating-linear-gradient(transparent,
+                transparent 29px,
+                var(--line) 29px,
+                var(--line) 30px);
+        background-size: 100% 30px;
+        opacity: 0.6;
+        pointer-events: none;
+    }
+
+    /* Red Margin Line */
+    .diary-pages::after {
+        content: '';
+        position: absolute;
+        left: 50px;
+        top: 60px;
+        bottom: 20px;
+        width: 2px;
+        background: #ff6b6b;
+        opacity: 0.7;
+        pointer-events: none;
+    }
+
+    /* Writing Area */
+    .writing-area {
+        position: relative;
+        z-index: 2;
+        padding: 60px 30px 30px 70px;
+    }
+
+    /* Date Header in Diary */
+    .entry-date {
+        font-family: 'Georgia', serif;
+        font-size: 1.1rem;
+        color: var(--primary);
+        margin-bottom: 2rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--line);
+        text-align: right;
+    }
+
+    /* Text Input */
+    .diary-input {
+        width: 100%;
+        min-height: 400px;
+        border: none;
+        outline: none;
+        background: transparent;
+        font-family: 'Georgia', serif;
+        font-size: 1.1rem;
+        line-height: 30px;
+        color: var(--ink);
+        resize: none;
+        overflow-y: auto;
+    }
+
+    .diary-input::placeholder {
+        color: #a0a0a0;
+        font-style: italic;
+    }
+
+    /* Mood Selector */
+    .mood-section {
+        background: rgba(255, 255, 255, 0.9);
+        margin: 20px;
+        padding: 1.5rem;
+        border-radius: 10px;
+        border-top: 3px solid var(--accent);
+    }
+
+    .mood-label {
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .mood-options {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .mood-option {
+        background: white;
+        border: 2px solid #e0e0e0;
+        border-radius: 50px;
+        padding: 0.8rem 1.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 500;
+    }
+
+    .mood-option:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .mood-option.selected {
+        border-color: var(--secondary);
+        background: linear-gradient(135deg, var(--secondary), var(--accent));
+        color: white;
+        transform: scale(1.05);
+    }
+
+    /* Action Buttons */
+    .diary-actions {
+        padding: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.5);
+        backdrop-filter: blur(10px);
+    }
+
+    .action-left {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .word-count {
+        color: #666;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .save-btn {
+        background: linear-gradient(135deg, var(--secondary), var(--accent));
+        color: white;
+        border: none;
+        padding: 0.8rem 2rem;
+        border-radius: 25px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1rem;
+    }
+
+    .save-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(42, 157, 143, 0.3);
+    }
+
+    .save-btn:active {
+        transform: scale(0.98);
+    }
+
+    /* AI Response Area (Hidden initially) */
+    .ai-response {
+        margin-top: 20px;
+        padding: 1.5rem;
+        background: linear-gradient(135deg,
+                rgba(42, 157, 143, 0.1),
+                rgba(233, 196, 106, 0.1));
+        border-radius: 15px;
+        border-left: 4px solid var(--secondary);
+        animation: slideIn 0.5s ease;
+            
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .ai-response h3 {
+        color: var(--primary);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .ai-message {
+        font-style: italic;
+        line-height: 1.6;
+        color: #555;
+    }
+
+    /* Floating Elements */
+    .floating-heart {
+        position: absolute;
+        color: var(--coral);
+        opacity: 0.3;
+        font-size: 1.5rem;
+        animation: float 6s ease-in-out infinite;
+        pointer-events: none;
+    }
+
+    @keyframes float {
+
+        0%,
+        100% {
+            transform: translateY(0px) rotate(0deg);
+        }
+
+        50% {
+            transform: translateY(-20px) rotate(5deg);
+        }
+    }
+
+    .floating-heart:nth-child(1) {
+        top: 20%;
+        right: 10%;
+        animation-delay: -0.5s;
+    }
+
+    .floating-heart:nth-child(2) {
+        bottom: 30%;
+        left: 5%;
+        animation-delay: -2s;
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 768px) {
+        .diary-header h1 {
+            font-size: 2.2rem;
+        }
+
+        .diary-book {
+            margin: 0 10px;
+            transform: none;
+        }
+
+        .writing-area {
+            padding: 40px 20px 20px 40px;
+        }
+
+        .diary-input {
+            font-size: 1rem;
+        }
+
+        .mood-options {
+            gap: 0.5rem;
+        }
+
+        .mood-option {
+            padding: 0.6rem 1rem;
+            font-size: 0.9rem;
+        }
+
+        .diary-actions {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .action-left {
+            order: 2;
+        }
+    }
+
+    /* Custom scrollbar for textarea */
+    .diary-input::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .diary-input::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.05);
+        border-radius: 10px;
+    }
+
+    .diary-input::-webkit-scrollbar-thumb {
+        background: var(--secondary);
+        border-radius: 10px;
+    }
+
+    .diary-input::-webkit-scrollbar-thumb:hover {
+        background: var(--primary);
+    }
+</style>
+{% endblock %}
+{% block body %}
+
+
+<!-- Main Content -->
+<main class="main-content">
+    <!-- Floating Hearts -->
+    <div class="floating-heart">💝</div>
+    <div class="floating-heart">🌸</div>
+
+    <div class="diary-container">
+        <!-- Diary Header -->
+        <div class="diary-header">
+            <h1><i class="fas fa-diary"></i>Your Diary</h1>
+            <div class="diary-date" id="currentDate"></div>
+        </div>
+
+        <!-- Diary Book -->
+        <form method="POST">
+    {% csrf_token %}
+    <div class="diary-book">
+        <div class="diary-pages">
+            <div class="writing-area">
+                <div class="entry-date" id="entryDate"></div>
+
+                <textarea class="diary-input" id="diaryText" 
+                    placeholder="Dear Diary,
+
+What's on your mind today? Share your thoughts, feelings, dreams, or anything that matters to you. This is your safe space to express yourself freely.
+
+How are you feeling right now? What happened today that made you smile? What challenges did you face? Remember, every emotion is valid and every experience is part of your unique journey.
+
+Write as much or as little as you'd like. Your AI companion is here to listen and support you..."
+                    name="query"></textarea>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="diary-actions">
+            <div class="action-left">
+                <div class="word-count">
+                    <i class="fas fa-pencil-alt"></i>
+                    <span id="wordCount">0 words</span>
+                </div>
+            </div>
+
+            <button class="save-btn" type="submit">
+                <i class="fas fa-heart"></i>
+                Share with AI Companion
+            </button>
+        </div>
+
+        <!-- AI Response -->
+        {% if response %}
+        <div class="ai-response" id="aiResponse">
+            <h3>
+                <i class="fas fa-robot"></i>
+                Your AI Companion Responds:
+            </h3>
+            <div class="ai-message" id="aiMessage">
+                {{ response }}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</form>
+
+</main>
+
+<script>
+    // Set current date
+    function setCurrentDate() {
+        const now = new Date();
+        const options = {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        };
+        const dateString = now.toLocaleDateString('en-US', options);
+
+        document.getElementById('currentDate').textContent = dateString;
+        document.getElementById('entryDate').textContent = dateString;
+    }
+
+    // Word counter
+    function updateWordCount() {
+        const text = document.getElementById('diaryText').value;
+        const words = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+        document.getElementById('wordCount').textContent = `${words} words`;
+    }
+
+    // Mood selection
+    function initializeMoodSelection() {
+        const moodOptions = document.querySelectorAll('.mood-option');
+
+        moodOptions.forEach(option => {
+            option.addEventListener('click', function () {
+                // Remove selected class from all options
+                moodOptions.forEach(opt => opt.classList.remove('selected'));
+                // Add selected class to clicked option
+                this.classList.add('selected');
+            });
+        });
+    }
+
+    // Save entry (placeholder for AI integration)
+    function handleSaveEntry() {
+        const diaryText = document.getElementById('diaryText').value.trim();
+        const selectedMood = document.querySelector('.mood-option.selected');
+
+        if (diaryText === '') {
+            alert('Please write something in your diary first!');
+            return;
+        }
+
+
+        // Show loading state
+        const saveBtn = document.getElementById('saveEntry');
+        const originalText = saveBtn.innerHTML;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
+        saveBtn.disabled = true;
+
+        // Simulate AI response (replace with actual Gemini API call)
+        setTimeout(() => {
+            showAIResponse(diaryText, selectedMood.dataset.mood);
+
+            // Reset button
+            saveBtn.innerHTML = originalText;
+            saveBtn.disabled = false;
+        }, 2000);
+    }
+
+    // Show AI response (placeholder)
+    function showAIResponse(text, mood) {
+
+    }
+
+    // Auto-resize textarea
+    function autoResizeTextarea() {
+        const textarea = document.getElementById('diaryText');
+
+        textarea.addEventListener('input', function () {
+            this.style.height = 'auto';
+            this.style.height = Math.max(400, this.scrollHeight) + 'px';
+            updateWordCount();
+        });
+    }
+
+    // Initialize everything
+    document.addEventListener('DOMContentLoaded', function () {
+        setCurrentDate();
+        initializeMoodSelection();
+        autoResizeTextarea();
+
+        // Add event listeners
+        document.getElementById('saveEntry').addEventListener('click', handleSaveEntry);
+        document.getElementById('diaryText').addEventListener('input', updateWordCount);
+
+        // Initial word count
+        updateWordCount();
+    });
+</script>
+{% endblock %}

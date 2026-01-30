@@ -1,0 +1,252 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Write Diary - HeartLog{% endblock %}
+
+{% block css %}
+<style>
+body {
+    padding-top: 80px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    min-height: 100vh;
+}
+
+.diary-container {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 2rem;
+}
+
+.diary-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.diary-header h1 {
+    font-size: 2.5rem;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+}
+
+.diary-header p {
+    font-size: 1.2rem;
+    color: #666;
+}
+
+.diary-form {
+    background: white;
+    padding: 3rem;
+    border-radius: 20px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+
+.form-group {
+    margin-bottom: 2rem;
+}
+
+.form-label {
+    display: block;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 1rem;
+}
+
+.diary-textarea {
+    width: 100%;
+    min-height: 300px;
+    padding: 1.5rem;
+    border: 2px solid #e9ecef;
+    border-radius: 15px;
+    font-family: inherit;
+    font-size: 1.1rem;
+    line-height: 1.8;
+    resize: vertical;
+    transition: all 0.3s ease;
+}
+
+.diary-textarea:focus {
+    outline: none;
+    border-color: var(--secondary);
+    box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.1);
+}
+
+.form-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.word-count {
+    color: #666;
+    font-size: 0.95rem;
+}
+
+.submit-btn {
+    background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+    color: white;
+    padding: 1rem 3rem;
+    border: none;
+    border-radius: 15px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(42, 157, 143, 0.3);
+}
+
+.submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(42, 157, 143, 0.4);
+}
+
+.submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.tips-section {
+    background: linear-gradient(135deg, rgba(42, 157, 143, 0.1) 0%, rgba(38, 70, 83, 0.1) 100%);
+    padding: 2rem;
+    border-radius: 15px;
+    margin-top: 2rem;
+}
+
+.tips-title {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: var(--primary);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tips-list {
+    list-style: none;
+    padding: 0;
+}
+
+.tips-list li {
+    padding: 0.5rem 0;
+    color: #666;
+    display: flex;
+    align-items: start;
+    gap: 0.5rem;
+}
+
+.tips-list li:before {
+    content: "✨";
+    flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+    .diary-form {
+        padding: 2rem 1.5rem;
+    }
+    
+    .diary-header h1 {
+        font-size: 2rem;
+    }
+    
+    .form-footer {
+        flex-direction: column;
+    }
+    
+    .submit-btn {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="diary-container">
+    <div class="diary-header">
+        <h1>✍️ Write Your Diary</h1>
+        <p>Express your thoughts and let AI understand your emotions</p>
+    </div>
+
+    <form method="post" class="diary-form">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="diary" class="form-label">How are you feeling today?</label>
+            <textarea 
+                name="diary" 
+                id="diary" 
+                class="diary-textarea" 
+                placeholder="Start writing your thoughts here... Be honest with yourself. What happened today? How did it make you feel?"
+                required
+            ></textarea>
+        </div>
+
+        <div class="form-footer">
+            <span class="word-count" id="wordCount">0 words</span>
+            <button type="submit" class="submit-btn" id="submitBtn">
+                Analyze & Save Entry
+            </button>
+        </div>
+    </form>
+
+    <div class="tips-section">
+        <div class="tips-title">
+            💡 Writing Tips
+        </div>
+        <ul class="tips-list">
+            <li>Write freely without worrying about grammar or structure</li>
+            <li>Focus on how events made you feel, not just what happened</li>
+            <li>Be honest - this is a safe space for your thoughts</li>
+            <li>Include both positive and challenging emotions</li>
+            <li>Try to write at least a few sentences for better AI analysis</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+const textarea = document.getElementById('diary');
+const wordCount = document.getElementById('wordCount');
+const submitBtn = document.getElementById('submitBtn');
+
+// Update word count
+textarea.addEventListener('input', function() {
+    const text = this.value.trim();
+    const words = text.split(/\s+/).filter(word => word.length > 0);
+    wordCount.textContent = words.length + ' word' + (words.length !== 1 ? 's' : '');
+    
+    // Enable/disable submit button
+    submitBtn.disabled = words.length < 3;
+});
+
+// Auto-save to localStorage (as backup)
+textarea.addEventListener('input', function() {
+    localStorage.setItem('diary_draft', this.value);
+});
+
+// Restore draft on load
+window.addEventListener('load', function() {
+    const draft = localStorage.getItem('diary_draft');
+    if (draft && textarea.value === '') {
+        if (confirm('We found a draft. Would you like to restore it?')) {
+            textarea.value = draft;
+            textarea.dispatchEvent(new Event('input'));
+        }
+    }
+});
+
+// Clear draft on successful submit
+document.querySelector('.diary-form').addEventListener('submit', function() {
+    localStorage.removeItem('diary_draft');
+});
+
+// Mobile menu toggle
+const mobileToggle = document.getElementById('mobileToggle');
+if (mobileToggle) {
+    mobileToggle.addEventListener('click', function() {
+        document.getElementById('navLinks').classList.toggle('active');
+    });
+}
+</script>
+{% endblock %}

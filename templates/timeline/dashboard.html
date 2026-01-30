@@ -1,0 +1,458 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - HeartLog{% endblock %}
+
+{% block css %}
+<style>
+    body {
+        padding-top: 80px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        min-height: 100vh;
+    }
+
+    .dashboard-container {
+        max-width: 1600px;
+        margin: 2rem auto;
+        padding: 2rem;
+    }
+
+    /* Welcome Section */
+    .welcome-section {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        color: white;
+        padding: 3rem 2rem;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .welcome-section::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 400px;
+        height: 400px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+    }
+
+    .welcome-section::after {
+        content: '';
+        position: absolute;
+        bottom: -30%;
+        left: -5%;
+        width: 300px;
+        height: 300px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 50%;
+    }
+
+    .welcome-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .welcome-greeting {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+
+    .welcome-date {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        margin-bottom: 1.5rem;
+    }
+
+    .welcome-quote {
+        font-size: 1.1rem;
+        font-style: italic;
+        opacity: 0.95;
+        max-width: 700px;
+    }
+
+    /* Quick Actions */
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .action-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 15px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        border-top: 4px solid var(--secondary);
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .action-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+        border-top-color: var(--coral);
+    }
+
+    .action-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+
+    .action-title {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: var(--primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .action-subtitle {
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    /* Main Stats Grid */
+    .stats-overview {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .stat-card.primary {
+        background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+        color: white;
+    }
+
+    .stat-card.accent {
+        background: linear-gradient(135deg, var(--warm) 0%, var(--coral) 100%);
+        color: white;
+    }
+
+    .stat-card.success {
+        background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+        color: white;
+    }
+
+    .stat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .stat-icon-large {
+        font-size: 2.5rem;
+    }
+
+    .stat-value {
+        font-size: 3rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        font-size: 1rem;
+        opacity: 0.9;
+        font-weight: 500;
+    }
+
+    /* Chart Section */
+    .chart-section {
+        background: white;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+    }
+
+    .chart-header {
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 3px solid var(--secondary);
+    }
+
+    .chart-title {
+        font-size: 1.8rem;
+        font-weight: bold;
+        color: var(--primary);
+    }
+
+    .chart-container {
+        position: relative;
+        height: 300px;
+    }
+
+    /* Emotion Distribution */
+    .distribution-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .distribution-item {
+        text-align: center;
+        padding: 1.5rem;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .distribution-item:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    }
+
+    .distribution-emoji {
+        font-size: 3rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .distribution-label {
+        font-weight: 600;
+        color: var(--primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .distribution-count {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: var(--secondary);
+    }
+
+    @media (max-width: 768px) {
+        .welcome-greeting {
+            font-size: 2rem;
+        }
+
+        .quick-actions {
+            grid-template-columns: 1fr;
+        }
+
+        .stats-overview {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="dashboard-container">
+    <!-- Welcome Section -->
+    <div class="welcome-section">
+        <div class="welcome-content">
+            <div class="welcome-greeting">Welcome back, {{ user.username }}! 👋</div>
+            <div class="welcome-date">{{ today|date:"l, F d, Y" }}</div>
+            <div class="welcome-quote">"The only journey is the one within." - Rainer Maria Rilke</div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <a href="{% url 'timeline:write' %}" class="action-card">
+            <div class="action-icon">✍️</div>
+            <div class="action-title">Write Entry</div>
+            <div class="action-subtitle">Log your emotions</div>
+        </a>
+        <a href="{% url 'timeline:timeline' %}" class="action-card">
+            <div class="action-icon">📅</div>
+            <div class="action-title">View Timeline</div>
+            <div class="action-subtitle">See your journey</div>
+        </a>
+        <a href="#insights" class="action-card">
+            <div class="action-icon">📊</div>
+            <div class="action-title">Insights</div>
+            <div class="action-subtitle">Analyze patterns</div>
+        </a>
+        <a href="#" class="action-card">
+            <div class="action-icon">🎯</div>
+            <div class="action-title">Goals</div>
+            <div class="action-subtitle">Track progress</div>
+        </a>
+    </div>
+
+    <!-- Statistics Overview -->
+    <div class="stats-overview">
+        <div class="stat-card primary">
+            <div class="stat-header">
+                <div class="stat-icon-large">📝</div>
+            </div>
+            <div class="stat-value">{{ total_entries }}</div>
+            <div class="stat-label">Total Entries</div>
+        </div>
+        <div class="stat-card accent">
+            <div class="stat-header">
+                <div class="stat-icon-large">🔥</div>
+            </div>
+            <div class="stat-value">{{ streak|default:0 }}</div>
+            <div class="stat-label">Day Streak</div>
+        </div>
+        <div class="stat-card success">
+            <div class="stat-header">
+                <div class="stat-icon-large">{{ dominant_emotion_emoji|default:"😊" }}</div>
+            </div>
+            <div class="stat-value">{{ dominant_emotion|default:"Happy" }}</div>
+            <div class="stat-label">Dominant Emotion</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon-large">📊</div>
+            </div>
+            <div class="stat-value">{{ average_mood_score|default:"0.0" }}</div>
+            <div class="stat-label">Avg Mood Score</div>
+        </div>
+    </div>
+
+    <!-- Weekly Trend Chart -->
+    <div class="chart-section">
+        <div class="chart-header">
+            <div class="chart-title">📈 Weekly Mood Trend</div>
+        </div>
+        <div class="chart-container">
+            <canvas id="weeklyChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Emotion Distribution -->
+    <div class="chart-section">
+        <div class="chart-header">
+            <div class="chart-title">🎭 Emotion Distribution</div>
+        </div>
+        <div class="distribution-grid">
+            {% for emotion in emotion_counts %}
+                <div class="distribution-item">
+                    <div class="distribution-emoji">{{ emotion.emoji }}</div>
+                    <div class="distribution-label">{{ emotion.emotion|title }}</div>
+                    <div class="distribution-count">{{ emotion.count }}</div>
+                </div>
+            {% empty %}
+                <div class="distribution-item">
+                    <div class="distribution-label">No data yet</div>
+                    <div class="distribution-count">Start logging!</div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Weekly mood trend chart
+const weeklyData = {{ weekly_data_json|default:'{}'|safe }};
+const canvas = document.getElementById('weeklyChart');
+const ctx = canvas ? canvas.getContext('2d') : null;
+
+const emotionScores = {
+    'happy': 5,
+    'grateful': 4.5,
+    'calm': 4,
+    'neutral': 3,
+    'anxious': 2,
+    'sad': 1.5,
+    'angry': 1
+};
+
+// Process weekly data
+const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const chartData = days.map(day => {
+    const dayEmotions = (weeklyData && weeklyData[day]) || [];
+    if (!Array.isArray(dayEmotions) || dayEmotions.length === 0) return null;
+    
+    const avgScore = dayEmotions.reduce((sum, emotion) => {
+        return sum + (emotionScores[emotion] || 3);
+    }, 0) / dayEmotions.length;
+    
+    return avgScore;
+});
+
+if (ctx) {
+    new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: days,
+        datasets: [{
+            label: 'Mood Score',
+            data: chartData,
+            borderColor: '#2a9d8f',
+            backgroundColor: 'rgba(42, 157, 143, 0.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointRadius: 6,
+            pointBackgroundColor: '#2a9d8f',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            spanGaps: true
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: true,
+                position: 'top'
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return 'Mood Score: ' + (context.parsed.y ? context.parsed.y.toFixed(1) : 'No data');
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                max: 5,
+                ticks: {
+                    stepSize: 1
+                },
+                title: {
+                    display: true,
+                    text: 'Mood Score'
+                }
+            },
+            x: {
+                title: {
+                    display: true,
+                    text: 'Day of Week'
+                }
+            }
+        }
+    }
+});
+}
+
+// Mobile menu toggle
+const mobileToggle = document.getElementById('mobileToggle');
+if (mobileToggle) {
+    mobileToggle.addEventListener('click', function() {
+        document.getElementById('navLinks').classList.toggle('active');
+    });
+}
+</script>
+{% endblock %}

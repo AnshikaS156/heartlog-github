@@ -1,0 +1,754 @@
+{% extends 'home/base.html' %}
+{% block title %}
+Guided Journaling - HeartLog
+{% endblock %}
+{% block css %}
+ 
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #264653;
+            --secondary: #2a9d8f;
+            --accent: #e9c46a;
+            --warm: #f4a261;
+            --coral: #e76f51;
+            --light-bg: #f8fffe;
+            --card-shadow: 0 8px 32px rgba(38, 70, 83, 0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: white;
+            overflow-x: hidden;
+            background: #264653;
+            min-height: 100vh;
+            padding-top: 100px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header - FIXED NAVBAR */
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 1rem 0;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 60px;
+            gap: 20px;
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            flex: 1;
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: white;
+            font-size: 1.8rem;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .nav-group {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 1.5rem;
+            align-items: center;
+            margin: 0;
+        }
+
+        .nav-links li {
+            margin: 0;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            white-space: nowrap;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent);
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .streaks-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ffa500) !important;
+            color: white !important;
+            padding: 0.6rem 1.2rem !important;
+            border: none;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .streaks-btn:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+            background: linear-gradient(45deg, #ff5252, #ff9500) !important;
+        }
+
+        .cta-button {
+            background: var(--accent);
+            color: var(--primary);
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        /* Main Content */
+        main {
+            padding: 2rem 0;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--secondary), var(--accent));
+            border-radius: 2px;
+        }
+
+        .page-header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, white 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .page-header p {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.8);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Prompt Cards Grid */
+        .prompts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .prompt-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .prompt-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--secondary), var(--accent), var(--warm));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .prompt-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 40px rgba(38, 70, 83, 0.15);
+            border-color: var(--secondary);
+        }
+
+        .prompt-card:hover::before {
+            opacity: 1;
+        }
+
+        .prompt-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            display: block;
+            opacity: 0.8;
+        }
+
+        .prompt-card h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .prompt-question {
+            font-size: 1.1rem;
+            color: var(--secondary);
+            font-style: italic;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .prompt-description {
+            font-size: 0.95rem;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .prompt-tag {
+            display: inline-block;
+            background: linear-gradient(45deg, var(--accent), var(--warm));
+            color: var(--primary);
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-top: 1rem;
+        }
+
+        /* Color variations for cards */
+        .prompt-card:nth-child(4n+1) .prompt-icon { color: var(--secondary); }
+        .prompt-card:nth-child(4n+2) .prompt-icon { color: var(--warm); }
+        .prompt-card:nth-child(4n+3) .prompt-icon { color: var(--coral); }
+        .prompt-card:nth-child(4n+4) .prompt-icon { color: var(--accent); }
+
+        /* Call to Action Section */
+        .cta-section {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 3rem 2rem;
+            border-radius: 30px;
+            text-align: center;
+            margin-top: 4rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        .cta-section h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta-section p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta-section .cta-button {
+            background: white;
+            color: var(--primary);
+            font-size: 1.1rem;
+            padding: 1rem 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Modal for writing */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+        }
+
+        .close:hover {
+            color: var(--coral);
+        }
+
+        .modal h3 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .modal .prompt-question {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: var(--light-bg);
+            border-radius: 10px;
+            border-left: 4px solid var(--secondary);
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 300px;
+            padding: 1rem;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--secondary);
+        }
+
+        .save-btn {
+            background: linear-gradient(45deg, var(--secondary), var(--accent));
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(42, 157, 143, 0.3);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .nav-links {
+                gap: 1rem;
+            }
+
+            .nav-links a {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.9rem;
+            }
+
+            .cta-button {
+                padding: 0.7rem 1.2rem;
+                font-size: 0.9rem;
+            }
+
+            .prompts-grid {
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 1.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            nav {
+                position: relative;
+            }
+
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            .nav-group {
+                position: relative;
+            }
+
+            .nav-links {
+                position: fixed;
+                top: 80px;
+                left: -100%;
+                width: 100%;
+                height: calc(100vh - 80px);
+                background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+                flex-direction: column;
+                justify-content: flex-start;
+                align-items: center;
+                padding: 2rem 1rem;
+                transition: left 0.3s ease;
+                gap: 1.5rem;
+                overflow-y: auto;
+            }
+
+            .nav-links.active {
+                left: 0;
+            }
+
+            .nav-links li {
+                width: 100%;
+                text-align: center;
+            }
+
+            .nav-links a {
+                width: 100%;
+                padding: 1rem;
+                justify-content: center;
+                border-radius: 10px;
+                font-size: 1.1rem;
+            }
+
+            .cta-button {
+                position: absolute;
+                top: 50%;
+                right: 60px;
+                transform: translateY(-50%);
+                padding: 0.6rem 1rem;
+                font-size: 0.85rem;
+            }
+
+            .page-header h1 {
+                font-size: 2.5rem;
+            }
+
+            .prompts-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .prompt-card {
+                padding: 1.5rem;
+            }
+
+            .cta-section {
+                padding: 2rem 1rem;
+            }
+
+            .cta-section h2 {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .navbar-brand {
+                font-size: 1.5rem;
+            }
+
+            .cta-button {
+                padding: 0.5rem 0.8rem;
+                font-size: 0.8rem;
+                right: 50px;
+            }
+
+            .prompts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                margin: 10% auto;
+                padding: 1.5rem;
+            }
+        }
+    </style>
+    {% endblock %}
+    {% block body %}
+    <!--main section-->
+
+    <main>
+        <div class="container">
+            <div class="page-header">
+                <h1>Guided Journaling</h1>
+                <p>Let these thoughtful prompts guide your reflection and help you explore your inner world. Choose a prompt that resonates with you today.</p>
+            </div>
+
+            <div class="prompts-grid">
+                <div class="prompt-card" onclick="openModal('Moment of Joy', 'What brought you the most joy today, no matter how small it might seem?', 'Focus on the details - what did it feel like, sound like, or look like? How did your body respond to this moment of happiness?')">
+                    <i class="prompt-icon fas fa-smile-beam"></i>
+                    <h3>Moment of Joy</h3>
+                    <p class="prompt-question">"What brought you the most joy today, no matter how small it might seem?"</p>
+                    <p class="prompt-description">Celebrate the bright spots in your day and amplify positive emotions through reflection.</p>
+                    <span class="prompt-tag">Gratitude</span>
+                </div>
+
+                <div class="prompt-card" onclick="openModal('Emotional Weather', 'If your emotions today were weather, what would the forecast be?', 'Describe the storms, sunshine, clouds, or gentle breezes you felt. What caused the weather changes?')">
+                    <i class="prompt-icon fas fa-cloud-sun"></i>
+                    <h3>Emotional Weather</h3>
+                    <p class="prompt-question">"If your emotions today were weather, what would the forecast be?"</p>
+                    <p class="prompt-description">Use weather metaphors to explore and understand your emotional landscape.</p>
+                    <span class="prompt-tag">Self-Awareness</span>
+                </div>
+
+                <div class="prompt-card" onclick="openModal('Challenge & Growth', 'What challenged you today and how did you handle it?', 'Reflect on your resilience, what you learned about yourself, and how this experience might help you grow.')">
+                    <i class="prompt-icon fas fa-mountain"></i>
+                    <h3>Challenge & Growth</h3>
+                    <p class="prompt-question">"What challenged you today and how did you handle it?"</p>
+                    <p class="prompt-description">Transform difficulties into learning opportunities and recognize your strength.</p>
+                    <span class="prompt-tag">Resilience</span>
+                </div>
+
+                <div class="prompt-card" onclick="openModal('Connection & Love', 'Who or what made you feel most connected today?', 'Explore the relationships, conversations, or experiences that made you feel understood, loved, or part of something bigger.')">
+                    <i class="prompt-icon fas fa-heart"></i>
+                    <h3>Connection & Love</h3>
+                    <p class="prompt-question">"Who or what made you feel most connected today?"</p>
+                    <p class="prompt-description">Reflect on the bonds and connections that enrich your life and bring meaning.</p>
+                    <span class="prompt-tag">Relationships</span>
+                </div>
+
+                <div class="prompt-card" onclick="openModal('Inner Voice', 'What has your inner voice been telling you lately?', 'Listen to your thoughts and feelings without judgment. What messages is your intuition sending you?')">
+                    <i class="prompt-icon fas fa-ear-listen"></i>
+                    <h3>Inner Voice</h3>
+                    <p class="prompt-question">"What has your inner voice been telling you lately?"</p>
+                    <p class="prompt-description">Tune into your intuition and acknowledge the wisdom within yourself.</p>
+                    <span class="prompt-tag">Mindfulness</span>
+                </div>
+
+                <div class="prompt-card" onclick="openModal('Dream & Aspiration', 'What dream or goal felt a little closer today?', 'Even small steps matter. What progress did you make, or what inspired you toward your aspirations?')">
+                    <i class="prompt-icon fas fa-star"></i>
+                    <h3>Dream & Aspiration</h3>
+                    <p class="prompt-question">"What dream or goal felt a little closer today?"</p>
+                    <p class="prompt-description">Acknowledge your progress and keep your dreams alive through reflection.</p>
+                    <span class="prompt-tag">Goals</span>
+                </div>
+
+                <div class="prompt-card" onclick="openModal('Act of Kindness', 'How did you show kindness today - to others or to yourself?', 'Reflect on both giving and receiving kindness. How did these moments of compassion affect you and others?')">
+                    <i class="prompt-icon fas fa-hands-helping"></i>
+                    <h3>Act of Kindness</h3>
+                    <p class="prompt-question">"How did you show kindness today - to others or to yourself?"</p>
+                    <p class="prompt-description">Recognize the power of compassion in your daily interactions and self-care.</p>
+                    <span class="prompt-tag">Compassion</span>
+                </div>
+
+                <div class="prompt-card" onclick="openModal('Sensory Memory', 'What smell, sound, or texture stood out to you today?', 'Engage with the sensory details that caught your attention. How did they make you feel or what did they remind you of?')">
+                    <i class="prompt-icon fas fa-eye"></i>
+                    <h3>Sensory Memory</h3>
+                    <p class="prompt-question">"What smell, sound, or texture stood out to you today?"</p>
+                    <p class="prompt-description">Ground yourself in the present by exploring your sensory experiences.</p>
+                    <span class="prompt-tag">Mindfulness</span>
+                </div>
+
+                <div class="prompt-card" onclick="openModal('Lesson Learned', 'What did today teach you about yourself or life?', 'Every day offers wisdom. What insights, realizations, or understanding emerged from your experiences?')">
+                    <i class="prompt-icon fas fa-lightbulb"></i>
+                    <h3>Lesson Learned</h3>
+                    <p class="prompt-question">"What did today teach you about yourself or life?"</p>
+                    <p class="prompt-description">Extract wisdom from daily experiences and celebrate your continuous growth.</p>
+                    <span class="prompt-tag">Growth</span>
+                </div>
+
+                <div class="prompt-card" onclick="openModal('Peaceful Moment', 'When did you feel most at peace today?', 'Describe this moment in detail. What created this sense of calm, and how can you invite more peace into tomorrow?')">
+                    <i class="prompt-icon fas fa-leaf"></i>
+                    <h3>Peaceful Moment</h3>
+                    <p class="prompt-question">"When did you feel most at peace today?"</p>
+                    <p class="prompt-description">Identify and appreciate the moments of tranquility in your day.</p>
+                    <span class="prompt-tag">Peace</span>
+                </div>
+
+                <div class="prompt-card" onclick="openModal('Future Self', 'What would your future self thank you for doing today?', 'Consider the actions, choices, or attitudes from today that your future self would appreciate and celebrate.')">
+                    <i class="prompt-icon fas fa-clock"></i>
+                    <h3>Future Self</h3>
+                    <p class="prompt-question">"What would your future self thank you for doing today?"</p>
+                    <p class="prompt-description">Connect with your future self and acknowledge positive choices you made today.</p>
+                    <span class="prompt-tag">Self-Care</span>
+                </div>
+
+                <div class="prompt-card" onclick="openModal('Creative Expression', 'How did you express your creativity or individuality today?', 'Creativity comes in many forms. How did you bring your unique perspective or imagination into the world today?')">
+                    <i class="prompt-icon fas fa-palette"></i>
+                    <h3>Creative Expression</h3>
+                    <p class="prompt-question">"How did you express your creativity or individuality today?"</p>
+                    <p class="prompt-description">Celebrate the unique ways you brought creativity and authenticity to your day.</p>
+                    <span class="prompt-tag">Creativity</span>
+                </div>
+            </div>
+
+            <div class="cta-section">
+                <h2>Ready to Begin Your Journey?</h2>
+                <p>Your thoughts and feelings matter. Start exploring your inner world with AI-powered insights that help you understand yourself better.</p>
+                <a href="#" class="cta-button">
+                    <i class="fas fa-magic"></i> Explore AI Insights
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal for writing -->
+    <div id="journalModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3 id="modalTitle">Prompt Title</h3>
+            <div id="modalQuestion" class="prompt-question">Prompt question will appear here</div>
+            <textarea id="journalTextarea" placeholder="Start writing your thoughts here..."></textarea>
+            <p style="font-size: 0.9rem; color: #666; margin: 0.5rem 0;" id="modalDescription">Additional guidance will appear here</p>
+            <button class="save-btn" onclick="saveEntry()">
+                <i class="fas fa-save"></i> Save Entry
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Mobile menu toggle
+        document.getElementById('mobileToggle').addEventListener('click', function() {
+            const navLinks = document.getElementById('navLinks');
+            navLinks.classList.toggle('active');
+        });
+
+        // Modal functionality
+        const modal = document.getElementById('journalModal');
+        const closeModal = document.getElementsByClassName('close')[0];
+
+        function openModal(title, question, description) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalQuestion').textContent = question;
+            document.getElementById('modalDescription').textContent = description;
+            document.getElementById('journalTextarea').value = '';
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        closeModal.onclick = function() {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        function saveEntry() {
+            const text = document.getElementById('journalTextarea').value;
+            if (text.trim()) {
+                // Here you would typically send the data to your backend
+                alert('Your journal entry has been saved! 📝✨');
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            } else {
+                alert('Please write something before saving your entry.');
+            }
+        }
+
+        // Add some subtle animations on scroll
+        window.addEventListener('scroll', function() {
+            const cards = document.querySelectorAll('.prompt-card');
+            cards.forEach(card => {
+                const cardTop = card.getBoundingClientRect().top;
+                if (cardTop < window.innerHeight - 100) {
+                    card.style.transform = 'translateY(0)';
+                    card.style.opacity = '1';
+                }
+            });
+        });
+    </script>
+    
+{% endblock %}
