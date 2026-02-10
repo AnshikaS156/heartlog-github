@@ -11,10 +11,10 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 import os
 from pathlib import Path
-
-from pathlib import Path
-import os
 from dotenv import load_dotenv
+import dj_database_url
+
+
 
 load_dotenv()
 
@@ -25,11 +25,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-$xlp&1i_p3w9i-@tf=1uvj=$s5p9@h!=5%r1db_fqany*e=cw-'
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "fallback-secret-key")
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "False") == "True"
+
 
 ALLOWED_HOSTS = ['*']
 
@@ -52,6 +51,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -85,10 +85,9 @@ WSGI_APPLICATION = 'Emotional_Journal.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    "default": dj_database_url.config(
+        default=os.getenv("DATABASE_URL")
+    )
 }
 
 
@@ -126,10 +125,18 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = "/static/"
+
 STATICFILES_DIRS = [
-      BASE_DIR/"demo_static",
+    BASE_DIR / "demo_static",
 ]
+
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+STATICFILES_STORAGE = (
+    "whitenoise.storage.CompressedManifestStaticFilesStorage"
+)
+
 
 #media files
 MEDIA_URL="/media/" #url to access file
